@@ -30,7 +30,7 @@ $('#auto-refresh').prop('checked', localStorage.getItem('autoRefresh') === 'true
 $('#runCgSql').prop('disabled', $('#auto-refresh').prop('checked'));
 
 function loadCgCqlLua_sample(self) {
-  let base_url = "https://github.com/mingodad/CG-SQL-Lua-playground/tree/main/"
+  let base_url = "https://raw.githubusercontent.com/mingodad/CG-SQL-Lua-playground/main/"
   switch(self.options[self.selectedIndex].value) {
     case "demo":
       $.get(base_url + "demo.sql", function( data ) {
