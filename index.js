@@ -24,10 +24,7 @@ grammar.getSession().setMode("ace/mode/sql");
 const code = setupEditorArea("code-editor", "codeText");
 code.getSession().setMode("ace/mode/lua");
 
-$('#opt-mode').val(localStorage.getItem('optimizationMode') || '2');
-$('#packrat').prop('checked', localStorage.getItem('packrat') === 'true');
-$('#auto-refresh').prop('checked', localStorage.getItem('autoRefresh') === 'true');
-$('#runCgSql').prop('disabled', $('#auto-refresh').prop('checked'));
+$('#genLua').prop('checked', true);
 
 function loadCgCqlLua_sample(self) {
   let base_url = "https://raw.githubusercontent.com/mingodad/CG-SQL-Lua-playground/main/"
@@ -103,7 +100,7 @@ function updateLocalStorage() {
 function jstr2C(s) {
   var size = lengthBytesUTF8(s) + 1;
   var ret = _malloc(size);
-  stringToUTF8Array(s, HEAP8, ret, size);
+  if (ret) stringToUTF8Array(s, HEAP8, ret, size);
   return ret;
 }
 
@@ -111,12 +108,12 @@ function run_argc_argv(jfunc, jstrings) {
   let c_strings = jstrings.map(x => jstr2C(x));
 
   // allocate and populate the array. adapted from https://stackoverflow.com/a/23917034
-	let argc = c_strings.length;
+  let argc = c_strings.length;
   let c_arr = _malloc((argc+1)*4); // 4-bytes per pointer
   c_strings.forEach(function(x, i) {
     Module.setValue(c_arr + i * 4, x, "i32");
   });
-	c_arr[argc] = 0;
+  c_arr[argc] = 0;
 
   // invoke our C function
   let rc = jfunc(argc, c_arr);
@@ -147,8 +144,9 @@ function RunCgSql() {
   const codeText = code.getValue();
 
   const optimizationMode = $('#opt-mode').val();
-  const packrat = $('#packrat').prop('checked');
-  const profile = $('#show-profile').prop('checked');
+  const genLua = $('#genLua').prop('checked');
+  const genJsonSchema = $('#genJsonSchema').prop('checked');
+  const genSchema = $('#genSchema').prop('checked');
 
   $grammarInfo.html('');
   $grammarValidation.hide();
@@ -172,20 +170,41 @@ function RunCgSql() {
   window.setTimeout(() => {
     let code_cql_fname = "code.cql";
     let code_lua_fname = "code.lua";
+    let code_json_fname = "code.json";
+    let code_schema_fname = "code.sql";
     if(FS.findObject(code_cql_fname))
       FS.unlink(code_cql_fname);
     if(FS.findObject(code_lua_fname))
       FS.unlink(code_lua_fname);
+    if(FS.findObject(code_json_fname))
+      FS.unlink(code_json_fname);
+    if(FS.findObject(code_schema_fname))
+      FS.unlink(code_schema_fname);
     FS.createDataFile("/", "code.cql", grammar.getValue(), true, true, true);
     output = "parse_status";
-    let rc = run_argc_argv(_cql_main, ["cql", "--in", "code.cql", "--rt", "lua", "--cg", "code.lua"]);
+    let rc;
+    if(genJsonSchema) rc = run_argc_argv(_cql_main, ["cql", "--in", "code.cql", "--rt", "json_schema", "--cg", "code.json"]);
+    else if(genSchema) rc = run_argc_argv(_cql_main, ["cql", "--in", "code.cql", "--rt", "schema_upgrade", "--cg", "code.sql", "--global_proc",  "gen_db"]);
+    else rc = run_argc_argv(_cql_main, ["cql", "--in", "code.cql", "--rt", "lua", "--cg", "code.lua"]);
     output = "default";
     if( rc == 0 ) {
       $grammarValidation.removeClass('validation-invalid').show();
       //$grammarInfo.html('<pre>' + FS.readdir("/") + '</pre>');
-      code.setValue(FS.readFile("/code.lua", { encoding: 'utf8' }));
-      run_argc_argv(_lua_main, ["lua", "code.lua"]);
-      $codeInfo.html('<pre>' + outputs.default + '</pre>');
+       if(genJsonSchema) {
+	 code.getSession().setMode("ace/mode/json");
+	 code.setValue(FS.readFile("/code.json", { encoding: 'utf8' }));
+      }
+      else if(genSchema) {
+	 code.getSession().setMode("ace/mode/sql");
+	 code.setValue(FS.readFile("/code.sql", { encoding: 'utf8' }));
+      }
+      else
+      {
+	 code.getSession().setMode("ace/mode/lua");
+	 code.setValue(FS.readFile("/code.lua", { encoding: 'utf8' }));
+	 run_argc_argv(_lua_main, ["lua", "code.lua"]);
+         $codeInfo.html('<pre>' + outputs.default + '</pre>');
+      }
     }
     else {
       $grammarValidation.addClass('validation-invalid').show();
