@@ -20,7 +20,7 @@ function setupEditorArea(id, lsKey) {
 }
 
 const grammar = setupEditorArea("grammar-editor", "grammarText");
-grammar.getSession().setMode("ace/mode/sql");
+grammar.getSession().setMode("ace/mode/pgsql");
 const code = setupEditorArea("code-editor", "codeText");
 code.getSession().setMode("ace/mode/lua");
 
@@ -195,7 +195,7 @@ function RunCgSql() {
 	 code.setValue(FS.readFile("/code.json", { encoding: 'utf8' }));
       }
       else if(genSchema) {
-	 code.getSession().setMode("ace/mode/sql");
+	 code.getSession().setMode("ace/mode/pgsql");
 	 code.setValue(FS.readFile("/code.sql", { encoding: 'utf8' }));
       }
       else
