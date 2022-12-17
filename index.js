@@ -147,7 +147,7 @@ function RunCgSql() {
   const genLua = $('#genLua').prop('checked');
   const genC = $('#genC').prop('checked');
   const genJsonSchema = $('#genJsonSchema').prop('checked');
-  const genSchema = $('#genSchema').prop('checked');
+  const genSchemaUpgrade = $('#genSchemaUpgrade').prop('checked');
 
   $grammarInfo.html('');
   $grammarValidation.hide();
@@ -185,7 +185,7 @@ function RunCgSql() {
         FS.unlink(code_json_fname);
       rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--rt", "json_schema", "--cg", code_json_fname]);
     }
-    else if(genSchema) {
+    else if(genSchemaUpgrade) {
       if(FS.findObject(code_schema_fname))
         FS.unlink(code_schema_fname);
       rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--rt", "schema_upgrade", "--cg", code_schema_fname, "--global_proc",  "gen_db"]);
@@ -211,7 +211,7 @@ function RunCgSql() {
 	 code.getSession().setMode("ace/mode/json");
 	 code.setValue(FS.readFile(code_json_fname, { encoding: 'utf8' }));
       }
-      else if(genSchema) {
+      else if(genSchemaUpgrade) {
 	 code.getSession().setMode("ace/mode/pgsql");
 	 code.setValue(FS.readFile(code_schema_fname, { encoding: 'utf8' }));
       }
@@ -223,7 +223,13 @@ function RunCgSql() {
       }
       else if(genC) {
 	 code.getSession().setMode("ace/mode/c_cpp");
-	 code.setValue(FS.readFile(code_h_fname, { encoding: 'utf8' }) + FS.readFile(code_c_fname, { encoding: 'utf8' }));
+	 code.setValue(
+	      "/* ==Start of code.h */\n"
+	      + FS.readFile(code_h_fname, { encoding: 'utf8' })
+	      + "\n/* ==End of code.h */\n\n/* ==Start of code.c */\n"
+	      + FS.readFile(code_c_fname, { encoding: 'utf8' })
+	      + "\n/* ==End of code.c */\n"
+	      );
       }
       else throw("Unknown generated code");
     }
