@@ -200,7 +200,7 @@ function RunCgSql() {
         FS.unlink(code_c_fname);
       if(FS.findObject(code_h_fname))
         FS.unlink(code_h_fname);
-      rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--cg", code_h_fname, code_c_fname]);
+      rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--nolines", "--cg", code_h_fname, code_c_fname]);
     }
     else throw("Unknown code generator");
     output = "default";
