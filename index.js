@@ -145,6 +145,7 @@ function RunCgSql() {
 
   const optimizationMode = $('#opt-mode').val();
   const genLua = $('#genLua').prop('checked');
+  const genC = $('#genC').prop('checked');
   const genJsonSchema = $('#genJsonSchema').prop('checked');
   const genSchema = $('#genSchema').prop('checked');
 
@@ -168,43 +169,63 @@ function RunCgSql() {
   });
 
   window.setTimeout(() => {
-    let code_cql_fname = "code.cql";
-    let code_lua_fname = "code.lua";
-    let code_json_fname = "code.json";
-    let code_schema_fname = "code.sql";
+    const code_cql_fname = "code.cql";
+    const code_lua_fname = "code.lua";
+    const code_c_fname = "code.c";
+    const code_h_fname = "code.h";
+    const code_json_fname = "code.json";
+    const code_schema_fname = "code.sql";
     if(FS.findObject(code_cql_fname))
       FS.unlink(code_cql_fname);
-    if(FS.findObject(code_lua_fname))
-      FS.unlink(code_lua_fname);
-    if(FS.findObject(code_json_fname))
-      FS.unlink(code_json_fname);
-    if(FS.findObject(code_schema_fname))
-      FS.unlink(code_schema_fname);
-    FS.createDataFile("/", "code.cql", grammar.getValue(), true, true, true);
+    FS.createDataFile("/", code_cql_fname, grammar.getValue(), true, true, true);
     output = "parse_status";
     let rc;
-    if(genJsonSchema) rc = run_argc_argv(_cql_main, ["cql", "--in", "code.cql", "--rt", "json_schema", "--cg", "code.json"]);
-    else if(genSchema) rc = run_argc_argv(_cql_main, ["cql", "--in", "code.cql", "--rt", "schema_upgrade", "--cg", "code.sql", "--global_proc",  "gen_db"]);
-    else rc = run_argc_argv(_cql_main, ["cql", "--in", "code.cql", "--rt", "lua", "--cg", "code.lua"]);
+    if(genJsonSchema) {
+      if(FS.findObject(code_json_fname))
+        FS.unlink(code_json_fname);
+      rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--rt", "json_schema", "--cg", code_json_fname]);
+    }
+    else if(genSchema) {
+      if(FS.findObject(code_schema_fname))
+        FS.unlink(code_schema_fname);
+      rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--rt", "schema_upgrade", "--cg", code_schema_fname, "--global_proc",  "gen_db"]);
+    }
+    else if(genLua) {
+      if(FS.findObject(code_lua_fname))
+        FS.unlink(code_lua_fname);
+      rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--rt", "lua", "--cg", code_lua_fname]);
+    }
+    else if(genC) {
+      if(FS.findObject(code_c_fname))
+        FS.unlink(code_c_fname);
+      if(FS.findObject(code_h_fname))
+        FS.unlink(code_h_fname);
+      rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--cg", code_h_fname, code_c_fname]);
+    }
+    else throw("Unknown code generator");
     output = "default";
     if( rc == 0 ) {
       $grammarValidation.removeClass('validation-invalid').show();
       //$grammarInfo.html('<pre>' + FS.readdir("/") + '</pre>');
        if(genJsonSchema) {
 	 code.getSession().setMode("ace/mode/json");
-	 code.setValue(FS.readFile("/code.json", { encoding: 'utf8' }));
+	 code.setValue(FS.readFile(code_json_fname, { encoding: 'utf8' }));
       }
       else if(genSchema) {
 	 code.getSession().setMode("ace/mode/pgsql");
-	 code.setValue(FS.readFile("/code.sql", { encoding: 'utf8' }));
+	 code.setValue(FS.readFile(code_schema_fname, { encoding: 'utf8' }));
       }
-      else
-      {
+      else if(genLua) {
 	 code.getSession().setMode("ace/mode/lua");
-	 code.setValue(FS.readFile("/code.lua", { encoding: 'utf8' }));
-	 run_argc_argv(_lua_main, ["lua", "code.lua"]);
+	 code.setValue(FS.readFile(code_lua_fname, { encoding: 'utf8' }));
+	 run_argc_argv(_lua_main, ["lua", code_lua_fname]);
          $codeInfo.html('<pre>' + outputs.default + '</pre>');
       }
+      else if(genC) {
+	 code.getSession().setMode("ace/mode/c_cpp");
+	 code.setValue(FS.readFile(code_h_fname, { encoding: 'utf8' }) + FS.readFile(code_c_fname, { encoding: 'utf8' }));
+      }
+      else throw("Unknown generated code");
     }
     else {
       $grammarValidation.addClass('validation-invalid').show();
