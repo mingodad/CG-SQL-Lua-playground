@@ -7,7 +7,7 @@ function setupInfoArea(id) {
     highlightActiveLine: false,
     highlightGutterLine: false
   })
-  e.renderer.$cursorLayer.element.style.opacity=0;
+  e.renderer.$cursorLayer.element.style.opacity = 0;
   return e;
 }
 
@@ -28,15 +28,45 @@ $('#genLua').prop('checked', true);
 
 function loadCgCqlLua_sample(self) {
   let base_url = "https://raw.githubusercontent.com/mingodad/CG-SQL-Lua-playground/main/"
-  switch(self.options[self.selectedIndex].value) {
+  switch (self.options[self.selectedIndex].value) {
     case "demo":
-      $.get(base_url + "demo.sql", function( data ) {
-        grammar.setValue( data );
+      $.get(base_url + "demo.sql", function (data) {
+        grammar.setValue(data);
       });
       break;
-      case "upgrade_harness(with errors)":
-      $.get(base_url + "upgrade_harness.cql", function( data ) {
-        grammar.setValue( data );
+    case "demo t1":
+      $.get(base_url + "t1.sql", function (data) {
+        grammar.setValue(data);
+      });
+      break;
+    case "demo t2":
+      $.get(base_url + "t2.sql", function (data) {
+        grammar.setValue(data);
+      });
+      break;
+    case "demo t3":
+      $.get(base_url + "t3.sql", function (data) {
+        grammar.setValue(data);
+      });
+      break;
+    case "demo t4":
+      $.get(base_url + "t4.sql", function (data) {
+        grammar.setValue(data);
+      });
+      break;
+    case "demo t5":
+      $.get(base_url + "t5.sql", function (data) {
+        grammar.setValue(data);
+      });
+      break;
+    case "demo t6":
+      $.get(base_url + "t6.sql", function (data) {
+        grammar.setValue(data);
+      });
+      break;
+    case "upgrade_harness(with errors)":
+      $.get(base_url + "upgrade_harness.cql", function (data) {
+        grammar.setValue(data);
       });
       break;
   }
@@ -63,9 +93,14 @@ function textToErrors(str) {
     let msg = match[1];
     let line_col = msg.match(/^code.cql:(\d+):(\d+)/);
     if (line_col) {
-      errors.push({"ln": line_col[1], "col":line_col[2], "msg": msg});
+      errors.push({ "ln": line_col[1], "col": line_col[2], "msg": msg });
     } else {
-      errors.push({"msg": msg});
+      line_col = msg.match(/code.lua:(\d+):/);
+      if (line_col) {
+        errors.push({ "ln": line_col[1], "col": 0, "msg": msg });
+      } else {
+        errors.push({ "msg": msg });
+      }
     }
   }
   return errors;
@@ -109,8 +144,8 @@ function run_argc_argv(jfunc, jstrings) {
 
   // allocate and populate the array. adapted from https://stackoverflow.com/a/23917034
   let argc = c_strings.length;
-  let c_arr = _malloc((argc+1)*4); // 4-bytes per pointer
-  c_strings.forEach(function(x, i) {
+  let c_arr = _malloc((argc + 1) * 4); // 4-bytes per pointer
+  c_strings.forEach(function (x, i) {
     Module.setValue(c_arr + i * 4, x, "i32");
   });
   c_arr[argc] = 0;
@@ -119,7 +154,7 @@ function run_argc_argv(jfunc, jstrings) {
   let rc = jfunc(argc, c_arr);
 
   // free c_strings
-  for(let i = 0; i < argc; i++)
+  for (let i = 0; i < argc; i++)
     _free(c_strings[i]);
 
   // free c_arr
@@ -130,8 +165,8 @@ function run_argc_argv(jfunc, jstrings) {
 }
 
 function callCustomMain(mfunc, args) {
-	Module["_main"] = Module[mfunc];
-	return callMain(args);
+  Module["_main"] = Module[mfunc];
+  return callMain(args);
 }
 
 function RunCgSql() {
@@ -175,69 +210,78 @@ function RunCgSql() {
     const code_h_fname = "code.h";
     const code_json_fname = "code.json";
     const code_schema_fname = "code.sql";
-    if(FS.findObject(code_cql_fname))
+    if (FS.findObject(code_cql_fname))
       FS.unlink(code_cql_fname);
     FS.createDataFile("/", code_cql_fname, grammar.getValue(), true, true, true);
     output = "parse_status";
     let rc;
-    if(genJsonSchema) {
-      if(FS.findObject(code_json_fname))
+    if (genJsonSchema) {
+      if (FS.findObject(code_json_fname))
         FS.unlink(code_json_fname);
       rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--rt", "json_schema", "--cg", code_json_fname]);
     }
-    else if(genSchemaUpgrade) {
-      if(FS.findObject(code_schema_fname))
+    else if (genSchemaUpgrade) {
+      if (FS.findObject(code_schema_fname))
         FS.unlink(code_schema_fname);
-      rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--rt", "schema_upgrade", "--cg", code_schema_fname, "--global_proc",  "gen_db"]);
+      rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--rt", "schema_upgrade", "--cg", code_schema_fname, "--global_proc", "gen_db"]);
     }
-    else if(genLua) {
-      if(FS.findObject(code_lua_fname))
+    else if (genLua) {
+      if (FS.findObject(code_lua_fname))
         FS.unlink(code_lua_fname);
       rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--rt", "lua", "--cg", code_lua_fname]);
     }
-    else if(genC) {
-      if(FS.findObject(code_c_fname))
+    else if (genC) {
+      if (FS.findObject(code_c_fname))
         FS.unlink(code_c_fname);
-      if(FS.findObject(code_h_fname))
+      if (FS.findObject(code_h_fname))
         FS.unlink(code_h_fname);
       rc = run_argc_argv(_cql_main, ["cql", "--in", code_cql_fname, "--nolines", "--cg", code_h_fname, code_c_fname]);
     }
-    else throw("Unknown code generator");
+    else throw ("Unknown code generator");
     output = "default";
-    if( rc == 0 ) {
+    if (rc == 0) {
       $grammarValidation.removeClass('validation-invalid').show();
+      $codeValidation.removeClass('validation-invalid').show();
       //$grammarInfo.html('<pre>' + FS.readdir("/") + '</pre>');
-       if(genJsonSchema) {
-	 code.getSession().setMode("ace/mode/json");
-	 code.setValue(FS.readFile(code_json_fname, { encoding: 'utf8' }));
+      if (genJsonSchema) {
+        code.getSession().setMode("ace/mode/json");
+        code.setValue(FS.readFile(code_json_fname, { encoding: 'utf8' }));
       }
-      else if(genSchemaUpgrade) {
-	 code.getSession().setMode("ace/mode/pgsql");
-	 code.setValue(FS.readFile(code_schema_fname, { encoding: 'utf8' }));
+      else if (genSchemaUpgrade) {
+        code.getSession().setMode("ace/mode/pgsql");
+        code.setValue(FS.readFile(code_schema_fname, { encoding: 'utf8' }));
       }
-      else if(genLua) {
-	 code.getSession().setMode("ace/mode/lua");
-	 code.setValue(FS.readFile(code_lua_fname, { encoding: 'utf8' }));
-	 run_argc_argv(_lua_main, ["lua", code_lua_fname]);
-         $codeInfo.html('<pre>' + outputs.default + '</pre>');
+      else if (genLua) {
+        code.getSession().setMode("ace/mode/lua");
+        code.setValue(FS.readFile(code_lua_fname, { encoding: 'utf8' }));
+        rc = run_argc_argv(_lua_main, ["lua", code_lua_fname]);
+        if (rc == 0) $codeInfo.html('<pre>' + outputs.default + '</pre>');
+        else {
+          $codeValidation.addClass('validation-invalid').show();
+          //$grammarInfo.html('<pre>' + outputs.parse_status + '</pre>');
+          const errors = textToErrors(outputs.default);
+          const html = generateErrorListHTML(errors);
+          $codeInfo.html(html);
+        }
       }
-      else if(genC) {
-	 code.getSession().setMode("ace/mode/c_cpp");
-	 code.setValue(
-	      "/* ==Start of code.h */\n"
-	      + FS.readFile(code_h_fname, { encoding: 'utf8' })
-	      + "\n/* ==End of code.h */\n\n/* ==Start of code.c */\n"
-	      + FS.readFile(code_c_fname, { encoding: 'utf8' })
-	      + "\n/* ==End of code.c */\n"
-	      );
+      else if (genC) {
+        code.getSession().setMode("ace/mode/c_cpp");
+        code.setValue(
+          "/* ==Start of code.h */\n"
+          + FS.readFile(code_h_fname, { encoding: 'utf8' })
+          + "\n/* ==End of code.h */\n\n/* ==Start of code.c */\n"
+          + FS.readFile(code_c_fname, { encoding: 'utf8' })
+          + "\n/* ==End of code.c */\n"
+        );
       }
-      else throw("Unknown generated code");
+      else throw ("Unknown generated code");
     }
     else {
       $grammarValidation.addClass('validation-invalid').show();
       //$grammarInfo.html('<pre>' + outputs.parse_status + '</pre>');
       const errors = textToErrors(outputs.parse_status);
       const html = generateErrorListHTML(errors);
+
       $grammarInfo.html(html);
     }
 
@@ -339,15 +383,15 @@ var Module = {
   // intercept stdout (print) and stderr (printErr)
   // note: text received is line based and missing final '\n'
 
-  'print': function(text) {
+  'print': function (text) {
     outputs[output] += text + "\n";
   },
-  'printErr': function(text) {
+  'printErr': function (text) {
     outputs[output] += text + "\n";
   },
 
   // called when emscripten runtime is initialized
-  'onRuntimeInitialized': function() {
+  'onRuntimeInitialized': function () {
     // wrap the C `parse` function
     cql_main = cwrap('cql_main', ['number', 'array']);
     lua_main = cwrap('lua_main', ['number', 'array']);
