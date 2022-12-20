@@ -148,7 +148,7 @@ function run_argc_argv(jfunc, jstrings) {
   c_strings.forEach(function (x, i) {
     Module.setValue(c_arr + i * 4, x, "i32");
   });
-  c_arr[argc] = 0;
+  Module.setValue(c_arr + argc * 4, null, "i32");
 
   // invoke our C function
   let rc = jfunc(argc, c_arr);
