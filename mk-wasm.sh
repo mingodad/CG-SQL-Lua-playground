@@ -25,4 +25,5 @@ emsdk-env emcc  \
 
 #-g -DWITHOUT_MEMPOOL -fsanitize=address
 #	-g -s ASSERTIONS=1 -s SAFE_HEAP=1 -s DETERMINISTIC=1 \
+#-s ASSERTIONS -s STACK_OVERFLOW_CHECK=2 \
 # -s STACK_SIZE=5MB needed by emscripten 3.1.27 and above because they reduced it to 64KB
