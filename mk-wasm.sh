@@ -10,7 +10,7 @@ emsdk-env emcc  \
 	-DLUA_COMPAT_5_3 -DLUA_USE_LINUX -D_XOPEN_SOURCE=500 \
 	-DWITH_LPEGLABEL  -DMAKE_LUA_CMD -DMAKE_LUAC_CMD \
 	-DWITH_UCPP -DUCPP_CONFIG -DSTAND_ALONE  -DNO_UCPP_BUF \
-	-o cql-lua-playground.js am-lua-5.4.4.c \
+	-o cql-lua-playground.js am-lua-5.4.6.c \
 	-DWITH_LSQLITE3 -DSQLITE_THREADSAFE=0 \
 	-DSQLITE_ENABLE_MATH_FUNCTIONS -DSQLITE_ENABLE_COLUMN_METADATA=1 \
 	-I$sqlite3h $sqlite3h/sqlite3.c \
