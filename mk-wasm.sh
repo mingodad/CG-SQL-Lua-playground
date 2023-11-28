@@ -18,7 +18,7 @@ emsdk-env emcc  \
 	-s EXPORTED_FUNCTIONS=_main,_run_cgsql_lua,_cql_main,_lua_main,_luac_main,_ucpp_main,_free,_malloc \
 	-s EXPORTED_RUNTIME_METHODS=ccall,cwrap,FS,callMain,setValue \
 	-s ALLOW_MEMORY_GROWTH=1 -s INVOKE_RUN=0 -s EXIT_RUNTIME=0 \
-	-s STACK_SIZE=5MB \
+	-s STACK_SIZE=8MB \
 	--embed-file $HOME/dev/lua/lpeglabel/relabel.lua@$destFolder \
 	--embed-file $HOME/dev/lua/lpegrex/lpegrex.lua@$destFolder \
 	--embed-file $cqlh/cqlrt.lua@$destFolder
