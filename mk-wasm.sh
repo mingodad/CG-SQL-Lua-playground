@@ -2,12 +2,13 @@
 destFolder=./
 srcFolder=$PWD
 sqlite3h="/home/mingo/dev/dadbiz++/third-party/dad/sqlite3-orig"
-cqlh="/home/mingo/dev/dadbiz++/third-party/dad/CG-SQL0/sources"
+#cqlh="/home/mingo/dev/dadbiz++/third-party/dad/CG-SQL0/sources"
+cqlh="/home/mingo/dev/dadbiz++/third-party/dad/CG-SQL-author-dad-github/sources"
 
 #there is a bug in cql when compiling with -Os
 emsdk-env emcc  \
 	-Oz -DMAKE_LUA_WASM -DLUA_PROGNAME='"lua"' \
-	-DLUA_COMPAT_5_3 -DLUA_USE_LINUX -D_XOPEN_SOURCE=500 \
+	-DLUA_COMPAT_5_3 -DLUA_USE_POSIX -D_XOPEN_SOURCE=500 \
 	-DWITH_LPEGLABEL  -DMAKE_LUA_CMD -DMAKE_LUAC_CMD \
 	-DWITH_UCPP -DUCPP_CONFIG -DSTAND_ALONE  -DNO_UCPP_BUF \
 	-o cql-lua-playground.js am-lua-5.4.6.c \
